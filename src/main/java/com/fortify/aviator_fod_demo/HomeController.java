@@ -36,16 +36,19 @@ public class HomeController {
             request.setAttribute(ATTRIB_MESSAGE, PASSWORD);
         else {
             System.out.println("username: " + username);
-            System.out.println("password: " + password);
+            // Do not log passwords
 
 
             /* Verify whether credentials are correct. */
             boolean credentialsCorrect = false;
             try(Connection connection = DriverManager.getConnection("localhost:1234", "dbuser", "secretpwd")) {
-                try (Statement statement = connection.createStatement()) {
-                    try (ResultSet rs = statement.executeQuery(
-                            "SELECT 1 FROM users WHERE username = '" + username + "' AND password = '" + password + "'")) {
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "SELECT 1 FROM users WHERE username = ? AND password = ?")) {
+                    statement.setString(1, username);
+                    statement.setString(2, password);
+                    try (ResultSet rs = statement.executeQuery()) {
                         credentialsCorrect = rs.next();
+                    }
                     }
                 }
             }
